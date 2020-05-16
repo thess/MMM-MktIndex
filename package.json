@@ -1,0 +1,19 @@
+{
+  "name": "MMM-MktIndex",
+  "version": "1.0.1",
+  "description": "MagicMirror Module for displaying market indexes from RapidAPI / Yahoo",
+  "main": "MMM-MktIndex.js",
+  "repository": "https://github.com/thess/MMM-MktIndex",
+  "keywords": [
+    "magic mirror",
+    "module",
+    "stock",
+    "rapidapi"
+  ],
+  "author": "thess",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thess/MMM-MktIndex/issues"
+  },
+  "devDependencies": {}
+}
