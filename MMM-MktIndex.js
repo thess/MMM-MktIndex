@@ -20,7 +20,7 @@ Module.register("MMM-MktIndex", {
     timeFormat: "DD-MM HH:mm",
     symbols: ["^DJI", "^IXIC", "^GSPC", "^TNX", "CL=F", "EURUSD=X"],
     alias: ["DOW 30", "Nasdaq", "S&P 500", "10yr Bond", "Crude Oil", "EUR/USD"],
-    updateInterval: 180 * 1000,
+    updateInterval: 3 * 60 * 1000,
     debug: false,
   },
 
