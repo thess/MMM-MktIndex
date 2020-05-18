@@ -2,7 +2,7 @@ const request = require('request');
 const moment = require('moment');
 
 var NodeHelper = require("node_helper");
-var marketState = "OPEN";
+var marketState = "REGULAR";
 
 String.prototype.hashCode = function() {
     var hash = 0
@@ -40,10 +40,11 @@ module.exports = NodeHelper.create({
             nextLoad = delay;
         } else {
             // Weekends/holidays/off-hours - query every 30min.
-            if (marketState == "CLOSED") {
+            if (marketState != "REGULAR") {
                 nextLoad = 30*60*1000;
             }
         }
+
         setTimeout(() => {
                 this.callAPI(this.config, (noti, payload)=>{
                         this.sendSocketNotification(noti, payload);
