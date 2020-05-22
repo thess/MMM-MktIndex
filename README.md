@@ -1,6 +1,7 @@
 # MMM-MktIndex
 MagicMirror module for displaying market indicies using Yahoo Finance via RapidAPI.
 
+Currently only works in the US Eastern time-zone calculating market open times.
 
 ## Screenshot
 - `Example (Using defaults)`<br />
@@ -18,7 +19,7 @@ npm install
 ## RapidAPI Key
 https://www.rapidapi.com/
 
-Free account has a limit 500 requests per day.
+**Note:** Free account has a limit of 500 requests per month which works out to approximately 16/day. Quotes are retrieved every 30min only when market is open.
 
 ## Configuration
 ### Simple
@@ -29,6 +30,7 @@ Free account has a limit 500 requests per day.
   position: "top_right",
   config: {
     apiKey : "YOUR-RAPIDAPI-KEY",
+    apiQuota: 16,
     timeFormat: "YYYY-MM-DD HH:mm:ss"
   }
 },
@@ -40,12 +42,12 @@ Free account has a limit 500 requests per day.
   position: "top_right",
   config: {
     apiKey : "YOUR-RAPIDAPI-KEY", // https://www.rapidapi.com/
+    apiQuota: 16, // Daily quota if using free account limit to 500/month
     timeFormat: "DD-MM HH:mm",
     symbols: ["^DJI", "^IXIC", "^GSPC", "^TNX", "CL=F", "EURUSD=X"],
     // Label name for each symbol. When you use `alias`, the number of symbols and aliases should be the same.
     // If value is null or "", symbol string will be used by default.
     alias: ["DOW 30", "Nasdaq", "S&P 500", "10yr Bond", "Crude Oil", "EUR/USD"],
-    updateInterval: 180 * 1000,
   }
 },
 ```
