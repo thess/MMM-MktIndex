@@ -14,14 +14,24 @@ String.prototype.hashCode = function() {
 const header = ["symbol", "price", "close", "change", "changeP"]
 const headerTitle = ["Symbol", "Cur.Price", "Prev.Close", "CHG", "CHG%"]
 
+const checkInterval = 3 * 60; // 3 minute polling
+var intervalCount = 10;   // 30min (10 * 3min intervals)
+
+var marketIsOpen = false;
+var quotaCount = 0;
+
 Module.register("MMM-MktIndex", {
   defaults: {
     apiKey: "",
     timeFormat: "DD-MM HH:mm",
     symbols: ["^DJI", "^IXIC", "^GSPC", "^TNX", "CL=F", "EURUSD=X"],
     alias: ["DOW 30", "Nasdaq", "S&P 500", "10yr Bond", "Crude Oil", "EUR/USD"],
-    updateInterval: 3 * 60 * 1000,
+    apiQuota: 0,
     debug: false,
+  },
+
+  getScripts: function() {
+    return ["moment.js"];
   },
 
   getStyles: function() {
@@ -30,17 +40,51 @@ Module.register("MMM-MktIndex", {
 
   start: function() {
     this.sendSocketNotification("INIT", this.config);
-    this.isStarted = false;
+    // Init queryQuota
+    quotaCount = this.config.apiQuota;
+  },
+
+  updateMarket: function() {
+    // Query every 30min if market open.
+    if (quotaCount-- > 0) {
+      this.sendSocketNotification("UPDATE", this.config);
+    }
+  },
+
+  checkMarketOpen: function(firstCheck = false) {
+    // API is limited to 500 requests/month.
+    // After first cycle, check for market open (M..F between 09:30..16:00 Eastern Time)
+    let now = new Date();
+    let dayOfWeek = now.getDay();
+    let clockMins = now.getMinutes() + 60 * now.getHours();
+    if ((dayOfWeek > 0 && dayOfWeek < 7) &&
+        (clockMins >= ((9 * 60) + 30) && clockMins <= (16 * 60))) {
+          if (!marketIsOpen) {
+            // Get opening quotes
+            marketIsOpen = true;
+            this.updateMarket();
+            intervalCount = 10;
+          } else {
+            if (--intervalCount <= 0) {
+              this.updateMarket();
+              intervalCount = 10;
+            }
+          }
+    } else {
+      // Get closing quotes
+      if (marketIsOpen || firstCheck) {
+        marketIsOpen = false;
+        this.updateMarket();
+        // Reset daily query quota
+	quotaCount = this.config.apiQuota;
+      }
+    }
   },
 
   getDom: function() {
     var wrapper = document.createElement("div");
     wrapper.id = "MKTINDEX";
     return wrapper;
-  },
-
-  prepare: function() {
-      this.prepareTable();
   },
 
   getStockName: function(symbol) {
@@ -93,15 +137,22 @@ Module.register("MMM-MktIndex", {
     wrapper.appendChild(tl);
   },
 
-  notificationReceived: function(noti, payload) {
-    if (noti == "DOM_OBJECTS_CREATED") {
-      this.sendSocketNotification("START");
-      this.prepare();
+  notificationReceived: function(notifyID, payload) {
+    if (notifyID == "DOM_OBJECTS_CREATED") {
+      this.prepareTable();
+      // First callback when market opens
+      marketIsOpen = false;
+      let _this = this;
+      // Start 3min timer check
+      _this.checkMarketOpen(true);
+      setInterval(function() {
+          _this.checkMarketOpen();
+      }, checkInterval * 1000);
     }
   },
 
-  socketNotificationReceived: function(noti, payload) {
-    if (noti == "UPDATE") {
+  socketNotificationReceived: function(notifyID, payload) {
+    if (notifyID == "UPDATE") {
       var numItems = payload.length;
       for (var i= 0; i < numItems; i++) {
 	    var item = payload[i];

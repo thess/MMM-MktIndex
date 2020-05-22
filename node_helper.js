@@ -1,8 +1,6 @@
 const request = require('request');
-const moment = require('moment');
 
 var NodeHelper = require("node_helper");
-var marketState = "REGULAR";
 
 String.prototype.hashCode = function() {
     var hash = 0
@@ -22,36 +20,18 @@ module.exports = NodeHelper.create({
         this.config = null;
     },
 
-    socketNotificationReceived: function(noti, payload) {
-        if (noti == "INIT") {
+    socketNotificationReceived: function(notifyID, payload) {
+        if (notifyID == "INIT") {
             this.config = payload;
             console.log("[MKTINDEX] Initialized.");
-        } else if (noti == "START") {
-            // Initial query in 15sec
-            this.scheduleUpdate(15000);
+        } else if (notifyID == "UPDATE") {
+            // Query immediately
+            this.callAPI(this.config, (notifyID, payload) => {
+                this.sendSocketNotification(notifyID, payload);
+            })
         }
     },
 
-    scheduleUpdate: function(delay = null) {
-        // API is limited to 500 requests/day. For the first cycle, 15sec is used.
-        // After first cycle, 3min is used for interval to match 500 quota limits.
-        var nextLoad = this.config.updateInterval;
-        if (delay !== null && delay >= 0) {
-            nextLoad = delay;
-        } else {
-            // Weekends/holidays/off-hours - query every 30min.
-            if (marketState != "REGULAR") {
-                nextLoad = 30*60*1000;
-            }
-        }
-
-        setTimeout(() => {
-                this.callAPI(this.config, (noti, payload)=>{
-                        this.sendSocketNotification(noti, payload);
-                })
-        }, nextLoad);
-    },
-  
     callAPI: function(cfg, callback) {
         var options = {
           method: 'GET',
@@ -63,8 +43,7 @@ module.exports = NodeHelper.create({
             useQueryString: true
           }
         };
-        this.log("Calling url : " + options.url);
-
+        console.log("[MKTINDEX] Query API for current market summary");
         request(options, (error, response, body)=>{
             var data = null;
             if (error) {
@@ -81,13 +60,10 @@ module.exports = NodeHelper.create({
                     console.log("[MKTINDEX] Data Error: There is no available data");
                 } else {
                     this.log("Sending result: " + results.length + " items");
-                    // Remember state of 1st item (US Market)
-                    marketState = results[0].marketState;
                     callback('UPDATE', results);
                 }
     	    }
-        })
-        this.scheduleUpdate();
+        });
     },
 
     log: function (msg) {
