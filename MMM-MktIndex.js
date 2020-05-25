@@ -14,19 +14,14 @@ String.prototype.hashCode = function() {
 const header = ["symbol", "price", "close", "change", "changeP"]
 const headerTitle = ["Symbol", "Cur.Price", "Prev.Close", "CHG", "CHG%"]
 
-const checkInterval = 3 * 60; // 3 minute polling
-var intervalCount = 10;   // 30min (10 * 3min intervals)
-
 var marketIsOpen = false;
-var quotaCount = 0;
 
 Module.register("MMM-MktIndex", {
   defaults: {
-    apiKey: "",
     timeFormat: "DD-MM HH:mm",
     symbols: ["^DJI", "^IXIC", "^GSPC", "^TNX", "CL=F", "EURUSD=X"],
     alias: ["DOW 30", "Nasdaq", "S&P 500", "10yr Bond", "Crude Oil", "EUR/USD"],
-    apiQuota: 0,
+    updateInterval: 3 * 60,
     debug: false,
   },
 
@@ -40,15 +35,10 @@ Module.register("MMM-MktIndex", {
 
   start: function() {
     this.sendSocketNotification("INIT", this.config);
-    // Init queryQuota
-    quotaCount = this.config.apiQuota;
   },
 
   updateMarket: function() {
-    // Query every 30min if market open.
-    if (quotaCount-- > 0) {
       this.sendSocketNotification("UPDATE", this.config);
-    }
   },
 
   checkMarketOpen: function(firstCheck = false) {
@@ -60,23 +50,17 @@ Module.register("MMM-MktIndex", {
     if ((dayOfWeek > 0 && dayOfWeek < 7) &&
         (clockMins >= ((9 * 60) + 30) && clockMins <= (16 * 60))) {
           if (!marketIsOpen) {
-            // Get opening quotes
-            marketIsOpen = true;
-            this.updateMarket();
-            intervalCount = 10;
-          } else {
-            if (--intervalCount <= 0) {
+              // Get opening quotes
+              marketIsOpen = true;
               this.updateMarket();
-              intervalCount = 10;
-            }
+          } else {
+              this.updateMarket();
           }
     } else {
       // Get closing quotes
       if (marketIsOpen || firstCheck) {
         marketIsOpen = false;
         this.updateMarket();
-        // Reset daily query quota
-	quotaCount = this.config.apiQuota;
       }
     }
   },
@@ -147,7 +131,7 @@ Module.register("MMM-MktIndex", {
       _this.checkMarketOpen(true);
       setInterval(function() {
           _this.checkMarketOpen();
-      }, checkInterval * 1000);
+      }, this.config.updateInterval * 1000);
     }
   },
 
@@ -166,13 +150,18 @@ Module.register("MMM-MktIndex", {
     }
   },
 
+  dpyFmt: function(value) {
+    return value.toLocaleString('en-US',
+        { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  },
+
   update: function(item) {
       var stock = {
         "symbol": item.symbol,
-        "price": item.regularMarketPrice.fmt,
-        "close": item.regularMarketPreviousClose.fmt,
-        "change": item.regularMarketChange.fmt,
-        "changeP": item.regularMarketChangePercent.fmt,
+        "price": this.dpyFmt(item.regularMarketPrice),
+        "close": this.dpyFmt(item.regularMarketPreviousClose),
+        "change": this.dpyFmt(item.regularMarketChange),
+        "changeP": this.dpyFmt(item.regularMarketChangePercent) + '%',
         "requestTime": moment().format(this.config.timeFormat),
         "hash": item.symbol.hashCode()
       }

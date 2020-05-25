@@ -33,15 +33,29 @@ module.exports = NodeHelper.create({
     },
 
     callAPI: function(cfg, callback) {
+        var apiEndpoint = "https://query1.finance.yahoo.com/v7/finance/quote";
+        var fields = [
+            'symbol',
+            'regularMarketVolume',
+            'regularMarketTime',
+            'regularMarketPrice',
+            'regularMarketPreviousClose',
+            'regularMarketChange',
+            'regularMarketChangePercent'
+        ];
         var options = {
-          method: 'GET',
-          url: 'https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/get-summary',
-          qs: {region: 'US', lang: 'en'},
-          headers: {
-            'x-rapidapi-host': 'apidojo-yahoo-finance-v1.p.rapidapi.com',
-            'x-rapidapi-key': cfg.apiKey,
-            useQueryString: true
-          }
+            method: 'GET',
+            url: apiEndpoint,
+            qs: {
+                'lang': 'en-US',
+                'region': 'US',
+                'corsDomain': 'finance.yahoo.com',
+                'fields': fields.toString(),
+                'symbols': cfg.symbols.toString()
+            },
+            headers: {
+                useQuerystring: true
+            }
         };
         console.log("[MKTINDEX] Query API for current market summary");
         request(options, (error, response, body)=>{
@@ -50,19 +64,21 @@ module.exports = NodeHelper.create({
                 console.error("[MKTINDEX] API Error: ", error);
                 return;
             }
+            if (response.statusCode != 200) {
+                console.error("[MKTINDEX] Request error: " + response.statusMessage);
+                return;
+            }
             data = JSON.parse(body);
             //this.log("Received data: " + JSON.stringify(data));
-            if (data.hasOwnProperty("message")) {
-                console.error("[MKTINDEX] Error:", data["message"]);
-            } else if (data.hasOwnProperty("marketSummaryResponse")) {
-		        var results = data.marketSummaryResponse.result;
-		        if (results.length == 0) {
+            if (data.hasOwnProperty('quoteResponse')) {
+                var results = data.quoteResponse.result;
+                if (results.length == 0) {
                     console.log("[MKTINDEX] Data Error: There is no available data");
                 } else {
                     this.log("Sending result: " + results.length + " items");
                     callback('UPDATE', results);
                 }
-    	    }
+            }
         });
     },
 
