@@ -57,7 +57,7 @@ module.exports = NodeHelper.create({
                 useQuerystring: true
             }
         };
-        console.log("[MKTINDEX] Query API for current market summary");
+        this.log("[MKTINDEX] Query API for current market summary");
         request(options, (error, response, body)=>{
             var data = null;
             if (error) {

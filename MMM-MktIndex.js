@@ -47,7 +47,7 @@ Module.register("MMM-MktIndex", {
     let now = new Date();
     let dayOfWeek = now.getDay();
     let clockMins = now.getMinutes() + 60 * now.getHours();
-    if ((dayOfWeek > 0 && dayOfWeek < 7) &&
+    if ((dayOfWeek > 0 && dayOfWeek < 6) &&
         (clockMins >= ((9 * 60) + 30) && clockMins <= (16 * 60))) {
           if (!marketIsOpen) {
               // Get opening quotes
