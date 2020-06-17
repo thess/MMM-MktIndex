@@ -160,7 +160,7 @@ Module.register("MMM-MktIndex", {
         "symbol": item.symbol,
         "price": this.dpyFmt(item.regularMarketPrice),
         "close": this.dpyFmt(item.regularMarketPreviousClose),
-        "change": this.dpyFmt(item.regularMarketChange),
+        "change": item.regularMarketChange,    // Format after sign test
         "changeP": this.dpyFmt(item.regularMarketChangePercent) + '%',
         "requestTime": moment().format(this.config.timeFormat),
         "hash": item.symbol.hashCode()
@@ -175,14 +175,16 @@ Module.register("MMM-MktIndex", {
     for (j = 1 ; j <= 4 ; j++) {
       var tdId = header[j] + "_" + hash;
       var td = document.getElementById(tdId);
-      td.innerHTML = stock[header[j]];
       td.className = header[j];
       if (header[j] == "change") {
         if (stock[header[j]] > 0) {
           ud = "up";
         } else if (stock[header[j]] < 0) {
-          ud = " down";
+          ud = "down";
         }
+        td.innerHTML = this.dpyFmt(stock[header[j]]);
+      } else {
+        td.innerHTML = stock[header[j]];
       }
     }
     tr.className = "animated stock " + ud;
@@ -200,3 +202,4 @@ Module.register("MMM-MktIndex", {
     }
   },
 });
+
