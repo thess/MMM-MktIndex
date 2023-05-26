@@ -1,4 +1,4 @@
-const request = require('request');
+const yahooFinance = require('yahoo-finance2').default;
 
 var NodeHelper = require("node_helper");
 
@@ -32,53 +32,34 @@ module.exports = NodeHelper.create({
         }
     },
 
-    callAPI: function(cfg, callback) {
-        var apiEndpoint = "https://query1.finance.yahoo.com/v7/finance/quote";
+    getQuotes: async function(symbolList) {
         var fields = [
             'symbol',
-            'regularMarketVolume',
             'regularMarketTime',
             'regularMarketPrice',
             'regularMarketPreviousClose',
             'regularMarketChange',
             'regularMarketChangePercent'
         ];
-        var options = {
-            method: 'GET',
-            url: apiEndpoint,
-            qs: {
-                'lang': 'en-US',
-                'region': 'US',
-                'corsDomain': 'finance.yahoo.com',
-                'fields': fields.toString(),
-                'symbols': cfg.symbols.toString()
-            },
-            headers: {
-                useQuerystring: true
+        this.log("Querying: " + symbolList);
+        const quotes = await yahooFinance.quote(symbolList, {fields: fields}, {validateResult: false});
+        return quotes;
+    },
+
+    callAPI: function(cfg, callback) {
+        this.log("Query API for current market summary");
+        this.getQuotes(cfg.symbols).then(quotes => {
+            this.log("Quotes returned = " + quotes.length);
+            if (quotes.length == 0) {
+                console.log("[MKTINDEX] Data Error: There is no available data");
+            } else {
+                this.log("Sending result: " + quotes.length + " items");
+                callback('UPDATE', quotes);
             }
-        };
-        this.log("[MKTINDEX] Query API for current market summary");
-        request(options, (error, response, body)=>{
-            var data = null;
-            if (error) {
-                console.error("[MKTINDEX] API Error: ", error);
-                return;
-            }
-            if (response.statusCode != 200) {
-                console.error("[MKTINDEX] Request error: " + response.statusMessage);
-                return;
-            }
-            data = JSON.parse(body);
-            //this.log("Received data: " + JSON.stringify(data));
-            if (data.hasOwnProperty('quoteResponse')) {
-                var results = data.quoteResponse.result;
-                if (results.length == 0) {
-                    console.log("[MKTINDEX] Data Error: There is no available data");
-                } else {
-                    this.log("Sending result: " + results.length + " items");
-                    callback('UPDATE', results);
-                }
-            }
+        })
+        .catch(err => {
+            console.error("[MKTINDEX] API Error: ", err.message);
+            return;
         });
     },
 

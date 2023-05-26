@@ -142,7 +142,6 @@ Module.register("MMM-MktIndex", {
 	    var item = payload[i];
 	    if (item.hasOwnProperty('symbol')) {
 	      if (this.config.symbols.indexOf(item.symbol) >= 0) {
-             this.log("UPDATING: " + item.symbol);
              this.update(item);
 	      }
 	    }
