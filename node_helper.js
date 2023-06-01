@@ -1,14 +1,13 @@
 const yahooFinance = require('yahoo-finance2').default;
-
-var NodeHelper = require("node_helper");
+const NodeHelper = require("node_helper");
 
 String.prototype.hashCode = function() {
-    var hash = 0
+    let hash = 0
     if (this.length == 0) {
         return hash;
     }
-    for (var i = 0; i < this.length; i++) {
-        var char = this.charCodeAt(i);
+    for (let i = 0; i < this.length; i++) {
+        let char = this.charCodeAt(i);
         hash = ((hash<<5)-hash)+char;
         hash = hash & hash;
     }
@@ -17,6 +16,14 @@ String.prototype.hashCode = function() {
 
 module.exports = NodeHelper.create({
     start: function() {
+        this.fields = [
+            'symbol',
+            'regularMarketTime',
+            'regularMarketPrice',
+            'regularMarketPreviousClose',
+            'regularMarketChange',
+            'regularMarketChangePercent'
+        ];
         this.config = null;
     },
 
@@ -33,17 +40,8 @@ module.exports = NodeHelper.create({
     },
 
     getQuotes: async function(symbolList) {
-        var fields = [
-            'symbol',
-            'regularMarketTime',
-            'regularMarketPrice',
-            'regularMarketPreviousClose',
-            'regularMarketChange',
-            'regularMarketChangePercent'
-        ];
         this.log("Querying: " + symbolList);
-        const quotes = await yahooFinance.quote(symbolList, {fields: fields}, {validateResult: false});
-        return quotes;
+        return await yahooFinance.quote(symbolList, {fields: this.fields}, {validateResult: false});
     },
 
     callAPI: function(cfg, callback) {

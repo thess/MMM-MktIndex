@@ -1,10 +1,10 @@
 String.prototype.hashCode = function() {
-    var hash = 0;
+    let hash = 0;
     if (this.length == 0) {
         return hash;
     }
-    for (var i = 0; i < this.length; i++) {
-        var char = this.charCodeAt(i);
+    for (let i = 0; i < this.length; i++) {
+        let char = this.charCodeAt(i);
         hash = ((hash<<5)-hash)+char;
         hash = hash & hash; // Convert to 32bit integer
     }
@@ -14,7 +14,7 @@ String.prototype.hashCode = function() {
 const header = ["symbol", "price", "close", "change", "changeP"]
 const headerTitle = ["Symbol", "Cur.Price", "Prev.Close", "CHG", "CHG%"]
 
-var marketIsOpen = false;
+let marketIsOpen = false;
 
 Module.register("MMM-MktIndex", {
   defaults: {
@@ -44,9 +44,9 @@ Module.register("MMM-MktIndex", {
   checkMarketOpen: function(firstCheck = false) {
     // API is limited to 500 requests/month.
     // After first cycle, check for market open (M..F between 09:30..16:00 Eastern Time)
-    let now = new Date();
-    let dayOfWeek = now.getDay();
-    let clockMins = now.getMinutes() + 60 * now.getHours();
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const clockMins = now.getMinutes() + 60 * now.getHours();
     if ((dayOfWeek > 0 && dayOfWeek < 6) &&
         (clockMins >= ((9 * 60) + 30) && clockMins <= (16 * 60))) {
           if (!marketIsOpen) {
@@ -66,14 +66,14 @@ Module.register("MMM-MktIndex", {
   },
 
   getDom: function() {
-    var wrapper = document.createElement("div");
+    let wrapper = document.createElement("div");
     wrapper.id = "MKTINDEX";
     return wrapper;
   },
 
   getStockName: function(symbol) {
-    var stockAlias = symbol;
-    var i = this.config.symbols.indexOf(symbol);
+    let stockAlias = symbol;
+    let i = this.config.symbols.indexOf(symbol);
     if (this.config.symbols.length == this.config.alias.length) {
       stockAlias = (this.config.alias[i]) ? this.config.alias[i] : stockAlias;
     }
@@ -81,15 +81,15 @@ Module.register("MMM-MktIndex", {
   },
 
   prepareTable: function() {
-    var wrapper = document.getElementById("MKTINDEX");
+    let wrapper = document.getElementById("MKTINDEX");
     wrapper.innerHTML = "";
 
-    var tbl = document.createElement("table");
+    let tbl = document.createElement("table");
     tbl.id = "MKTINDEX_TABLE";
-    var thead = document.createElement("thead");
-    var tr = document.createElement("tr");
-    for (i in header) {
-      var td = document.createElement("td");
+    let thead = document.createElement("thead");
+    let tr = document.createElement("tr");
+    for (let i in header) {
+      let td = document.createElement("td");
       td.innerHTML = headerTitle[i];
       td.className = header[i];
       tr.appendChild(td)
@@ -97,15 +97,15 @@ Module.register("MMM-MktIndex", {
     thead.appendChild(tr);
     tbl.appendChild(thead);
 
-    for (i in this.config.symbols) {
-      var stock = this.config.symbols[i];
-      var hashId = stock.hashCode();
-      var tr = document.createElement("tr");
+    for (let i in this.config.symbols) {
+      const stock = this.config.symbols[i];
+      const hashId = stock.hashCode();
+      let tr = document.createElement("tr");
       tr.className = "stock";
       tr.id = "STOCK_" + hashId;
-      for (j in header) {
-        var td = document.createElement("td");
-        var stockAlias = this.getStockName(stock);
+      for (let j in header) {
+        let td = document.createElement("td");
+        const stockAlias = this.getStockName(stock);
         td.innerHTML = (j != 0) ? "---" : stockAlias;
         td.className = header[j];
         td.id = header[j] + "_" + hashId;
@@ -114,7 +114,7 @@ Module.register("MMM-MktIndex", {
       tbl.appendChild(tr);
     }
     wrapper.appendChild(tbl);
-    var tl = document.createElement("div");
+    let tl = document.createElement("div");
     tl.className = "tagline";
     tl.id = "MKTINDEX_TAGLINE";
     tl.innerHTML = "Last updated: ";
@@ -137,9 +137,9 @@ Module.register("MMM-MktIndex", {
 
   socketNotificationReceived: function(notifyID, payload) {
     if (notifyID == "UPDATE") {
-      var numItems = payload.length;
-      for (var i= 0; i < numItems; i++) {
-	    var item = payload[i];
+      const numItems = payload.length;
+      for (let i= 0; i < numItems; i++) {
+	    let item = payload[i];
 	    if (item.hasOwnProperty('symbol')) {
 	      if (this.config.symbols.indexOf(item.symbol) >= 0) {
              this.update(item);
@@ -155,7 +155,7 @@ Module.register("MMM-MktIndex", {
   },
 
   update: function(item) {
-      var stock = {
+      const stock = {
         "symbol": item.symbol,
         "price": this.dpyFmt(item.regularMarketPrice),
         "close": this.dpyFmt(item.regularMarketPreviousClose),
@@ -168,12 +168,12 @@ Module.register("MMM-MktIndex", {
   },
 
   drawTable: function(stock) {
-    var hash = stock.hash;
-    var tr = document.getElementById("STOCK_" + hash);
-    var ud = "";
-    for (j = 1 ; j <= 4 ; j++) {
-      var tdId = header[j] + "_" + hash;
-      var td = document.getElementById(tdId);
+    const hash = stock.hash;
+    let tr = document.getElementById("STOCK_" + hash);
+    let ud = "";
+    for (let j = 1 ; j <= 4 ; j++) {
+      const tdId = header[j] + "_" + hash;
+      let td = document.getElementById(tdId);
       td.className = header[j];
       if (header[j] == "change") {
         if (stock[header[j]] > 0) {
@@ -187,7 +187,7 @@ Module.register("MMM-MktIndex", {
       }
     }
     tr.className = "animated stock " + ud;
-    var tl = document.getElementById("MKTINDEX_TAGLINE");
+    let tl = document.getElementById("MKTINDEX_TAGLINE");
     tl.innerHTML = "Last updated: " + stock.requestTime;
     setTimeout(()=>{
       tr.className = "stock " + ud;
