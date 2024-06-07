@@ -15,6 +15,7 @@ const header = ["symbol", "price", "close", "change", "changeP"]
 const headerTitle = ["Symbol", "Cur.Price", "Prev.Close", "CHG", "CHG%"]
 
 let marketIsOpen = false;
+let initDone = false;
 
 Module.register("MMM-MktIndex", {
   defaults: {
@@ -34,10 +35,14 @@ Module.register("MMM-MktIndex", {
   },
 
   start: function() {
-    this.sendSocketNotification("INIT", this.config);
+    if (!initDone) {
+        this.sendSocketNotification("INIT", this.config);
+        initDone = true;
+    }
   },
 
   updateMarket: function() {
+      if (!initDone) this.start();
       this.sendSocketNotification("UPDATE", this.config);
   },
 
@@ -93,7 +98,8 @@ Module.register("MMM-MktIndex", {
       td.innerHTML = headerTitle[i];
       td.className = header[i];
       tr.appendChild(td)
-    };
+    }
+
     thead.appendChild(tr);
     tbl.appendChild(thead);
 
@@ -194,7 +200,7 @@ Module.register("MMM-MktIndex", {
     }, 1500);
   },
 
-  
+
   log: function (msg) {
     if (this.config && this.config.debug) {
       console.log(this.name + ": ", (msg));
