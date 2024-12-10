@@ -1,4 +1,5 @@
 const yahooFinance = require('yahoo-finance2').default;
+yahooFinance.suppressNotices(['yahooSurvey']);
 const NodeHelper = require("node_helper");
 
 String.prototype.hashCode = function() {

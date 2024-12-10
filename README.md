@@ -15,7 +15,11 @@ git clone https://github.com/thess/MMM-MktIndex
 cd MMM-MktIndex
 npm install
 ```
+After installation, you can use this simple test applet to verify that you can get results from the Yahoo Finance site.
 
+```shell
+node yf-test.js
+```
 ## API Key
 None required.
 
