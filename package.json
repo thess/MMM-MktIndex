@@ -16,7 +16,7 @@
     "url": "https://github.com/thess/MMM-MktIndex/issues"
   },
   "dependencies": {
-    "yahoo-finance2": "^2.13.2"
+    "yahoo-finance2": "~2.13.2"
   },
   "devDependencies": {}
 }
