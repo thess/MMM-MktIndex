@@ -1,3 +1,4 @@
+const YahooFinance = require("yahoo-finance2").default;
 
 const fields = [
     'symbol',
@@ -10,8 +11,9 @@ const fields = [
 
 const symbols = ["^DJI", "^IXIC", "^GSPC", "^TNX", "CL=F", "EURUSD=X"];
 async function getQuotes(symbolList) {
-    const yahooFinance = require('yahoo-finance2').default;
-    yahooFinance.suppressNotices(['yahooSurvey']);
+    const yahooFinance = new YahooFinance({
+      suppressNotices: ["yahooSurvey"],
+    });
     const quotes = await yahooFinance.quote(symbolList, {fields: fields},{validateResult: false});
     console.log("Num returned: ", quotes.length);
     return quotes;
