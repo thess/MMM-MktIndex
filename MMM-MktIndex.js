@@ -50,8 +50,12 @@ Module.register("MMM-MktIndex", {
     // API is limited to 500 requests/month.
     // After first cycle, check for market open (M..F between 09:30..16:00 Eastern Time)
     const now = new Date();
-    const dayOfWeek = now.getDay();
-    const clockMins = now.getMinutes() + 60 * now.getHours();
+    // Market hours are Eastern Time, so evaluate the clock in US/Eastern
+    // rather than the host's local timezone (otherwise a non-ET host
+    // refreshes during the wrong hours and misses the real session).
+    const et = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+    const dayOfWeek = et.getDay();
+    const clockMins = et.getMinutes() + 60 * et.getHours();
     if ((dayOfWeek > 0 && dayOfWeek < 6) &&
         (clockMins >= ((9 * 60) + 30) && clockMins <= (16 * 60))) {
           if (!marketIsOpen) {
