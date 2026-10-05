@@ -1,6 +1,6 @@
 {
   "name": "MMM-MktIndex",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "MagicMirror Module for displaying market indexes from Yahoo Finance",
   "main": "MMM-MktIndex.js",
   "repository": "https://github.com/thess/MMM-MktIndex",
